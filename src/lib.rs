@@ -1,4 +1,4 @@
-use hpke::{aead::{AeadTag, AesGcm256}, Deserializable, kdf::HkdfSha256, Kem as KemTrait, kem::X25519HkdfSha256, OpModeR, OpModeS, Serializable};
+use hpke::{aead::{AeadTag, AesGcm256}, Deserializable, kdf::HkdfSha256, Kem as KemTrait, kem::X25519HkdfSha256, OpModeR, OpModeS, PskBundle, Serializable};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
@@ -19,12 +19,21 @@ pub fn seal(
     info: &[u8],
     aad: &[u8],
     pt: &[u8],
+    psk: &[u8],
+    psk_id: &[u8],
 ) -> Vec<u8> {
     let mut rng = StdRng::from_seed(seed.try_into().unwrap());
     let pkr = <Kem as KemTrait>::PublicKey::from_bytes(pkr_bytes).unwrap();
+
+    let mode = if psk_id.len() > 0 {
+        OpModeS::Psk(PskBundle { psk, psk_id })
+    } else {
+        OpModeS::Base
+    };
+
     let mut pt_vec = pt.to_vec();
     let (enc, tag) =
-        hpke::single_shot_seal_in_place_detached::<Aead, Kdf, Kem, _>(&OpModeS::Base, &pkr, info, &mut pt_vec, aad, &mut rng).unwrap();
+        hpke::single_shot_seal_in_place_detached::<Aead, Kdf, Kem, _>(&mode, &pkr, info, &mut pt_vec, aad, &mut rng).unwrap();
     let ciphertext = pt_vec;
     // result = enc || ciphertext || tag
     [enc.to_bytes().as_slice(), &ciphertext, tag.to_bytes().as_slice()].concat()
@@ -37,6 +46,8 @@ pub fn open(
     info: &[u8],
     aad: &[u8],
     ct: &[u8],
+    psk: &[u8],
+    psk_id: &[u8],
 ) -> Vec<u8> {
     // ct = ciphertext || tag
     // AesGcm256 Nt = 16
@@ -48,8 +59,14 @@ pub fn open(
     let skr = <Kem as KemTrait>::PrivateKey::from_bytes(skr_bytes).unwrap();
     let tag = AeadTag::<Aead>::from_bytes(tag_bytes).unwrap();
 
+    let mode = if psk_id.len() > 0 {
+        OpModeR::Psk(PskBundle { psk, psk_id })
+    } else {
+        OpModeR::Base
+    };
+
     let mut ciphertext_vec = ciphertext.to_vec();
-    hpke::single_shot_open_in_place_detached::<Aead, Kdf, Kem>(&OpModeR::Base, &skr, &enc, info, &mut ciphertext_vec, aad, &tag).unwrap();
+    hpke::single_shot_open_in_place_detached::<Aead, Kdf, Kem>(&mode, &skr, &enc, info, &mut ciphertext_vec, aad, &tag).unwrap();
 
     let pt = ciphertext_vec;
     pt
