@@ -1,4 +1,4 @@
-use hpke::{aead::{AeadTag, AesGcm256}, Deserializable, kdf::HkdfSha256, Kem as KemTrait, kem::X25519HkdfSha256, OpModeR, OpModeS, PskBundle, Serializable};
+use hpke::{aead::{AeadTag, AesGcm128}, Deserializable, kdf::HkdfSha256, Kem as KemTrait, kem::X25519HkdfSha256, OpModeR, OpModeS, PskBundle, Serializable};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 type Kem = X25519HkdfSha256;
-type Aead = AesGcm256;
+type Aead = AesGcm128;
 type Kdf = HkdfSha256;
 
 #[wasm_bindgen]
