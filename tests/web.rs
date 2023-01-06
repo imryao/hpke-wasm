@@ -39,10 +39,12 @@ fn hpke_test() {
     // Client encrypt plaintext
     let result = seal(&[7u8; 32], spk_bytes.as_slice(), INFO, aad, pt, &[1; 1], &[1; 1]);
 
-    // result = enc || ct
-    // X25519HkdfSha256 Nenc = 32
-    let enc_bytes = &result[..32];
-    let ct = &result[32..];
+    // result = secret || enc || ct
+    // AES-128-GCM Nk = 16
+    // DHKEM(X25519, HKDF-SHA256) Nenc = 32
+    let secret_bytes = &result[..16];
+    let enc_bytes = &result[16..48];
+    let ct = &result[48..];
 
     // send result to remote
 

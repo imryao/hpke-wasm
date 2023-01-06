@@ -31,12 +31,18 @@ pub fn seal(
         OpModeS::Base
     };
 
+    let (enc, mut sender_ctx) = hpke::setup_sender::<Aead, Kdf, Kem, _>(&mode, &pkr, info, &mut rng).unwrap();
     let mut pt_vec = pt.to_vec();
-    let (enc, tag) =
-        hpke::single_shot_seal_in_place_detached::<Aead, Kdf, Kem, _>(&mode, &pkr, info, &mut pt_vec, aad, &mut rng).unwrap();
+    let tag = sender_ctx.seal_in_place_detached(&mut pt_vec, aad).unwrap();
+
+    // secret = context.Export("message/bhttp response", Nk)
+    // AES-128-GCM Nk = 16
+    let mut secret = [0u8; 16];
+    sender_ctx.export(b"message/bhttp response", &mut secret).unwrap();
+
     let ciphertext = pt_vec;
-    // result = enc || ciphertext || tag
-    [enc.to_bytes().as_slice(), &ciphertext, tag.to_bytes().as_slice()].concat()
+    // result = secret || enc || ciphertext || tag
+    [&secret, enc.to_bytes().as_slice(), &ciphertext, tag.to_bytes().as_slice()].concat()
 }
 
 #[wasm_bindgen]
@@ -50,7 +56,7 @@ pub fn open(
     psk_id: &[u8],
 ) -> Vec<u8> {
     // ct = ciphertext || tag
-    // AesGcm256 Nt = 16
+    // AES-128-GCM Nt = 16
     let idx = ct.len() - 16;
     let ciphertext = &ct[..idx];
     let tag_bytes = &ct[idx..];
