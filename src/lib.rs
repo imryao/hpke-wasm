@@ -99,6 +99,7 @@ pub fn o( // o for open
     let mut aead_nonce = [0u8; 12];
     hk.expand(b"nonce", &mut aead_nonce).unwrap();
 
+    // psk = Expand(prk, "psk", 32)
     let mut psk = [0u8; 32];
     hk.expand(b"psk", &mut psk).unwrap();
 
