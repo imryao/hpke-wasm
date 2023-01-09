@@ -99,9 +99,6 @@ pub fn o( // o for open
     let mut aead_nonce = [0u8; 12];
     hk.expand(b"nonce", &mut aead_nonce).unwrap();
 
-    let mut psk = [0u8; 32];
-    hk.expand(b"psk", &mut psk).unwrap();
-
     // pt = Open(aead_key, aead_nonce, "", ct)
     // todo: AES-128-GCM, AES-256-GCM, ChaCha20Poly1305
     let key = Key::from_slice(&aead_key);
@@ -110,7 +107,5 @@ pub fn o( // o for open
     let mut ct_vec = ct.to_vec();
     cipher.decrypt_in_place(nonce, b"", &mut ct_vec).unwrap();
     let pt = ct_vec;
-
-    // result = psk || pt
-    [psk.as_slice(), pt.as_slice()].concat()
+    pt
 }
