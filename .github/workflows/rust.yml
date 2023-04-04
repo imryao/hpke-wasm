@@ -22,3 +22,10 @@ jobs:
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
     - name: Build
       run: wasm-pack build --target web
+    - name: Compress
+      run: brotli pkg/*.wasm
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: pkg
+        path: ./pkg
