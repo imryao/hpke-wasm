@@ -21,7 +21,7 @@ jobs:
     - name: Setup wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
     - name: Print version
-      run: echo `rustc --version`
+      run: echo `rustc --version; brotli --version;`
     - name: Build
       run: wasm-pack build --target web
     - name: Compress
