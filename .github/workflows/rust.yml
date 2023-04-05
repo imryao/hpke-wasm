@@ -20,6 +20,8 @@ jobs:
       run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - name: Setup wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+    - name: Print version
+      run: echo `rustc --version`
     - name: Build
       run: wasm-pack build --target web
     - name: Compress
