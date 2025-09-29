@@ -45,7 +45,7 @@ pub fn s( // s for seal
     let pkr = <KemType as KemTrait>::PublicKey::from_bytes(r).unwrap();
 
     let mode = if i.len() > 0 {
-        OpModeS::Psk(PskBundle { psk: k, psk_id: i })
+        OpModeS::Psk(PskBundle::new(k, i).unwrap())
     } else {
         OpModeS::Base
     };
